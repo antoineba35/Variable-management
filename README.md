@@ -5,4 +5,5 @@ The variable manager allows you to display all the variables of the selected pro
   - Its starting value
   - Its type
   - The line number where it is created
+  
 For the moment the program only works on Python but this is only the first version of the project. Several features will appear later.
