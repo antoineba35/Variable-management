@@ -1,0 +1,250 @@
+import shutil
+import ctypes
+import fileinput
+from tkinter import *
+from tkinter.filedialog import askopenfilename
+from functools import partial
+
+Tk().withdraw() # we don't want a full GUI, so keep the root window from appearing
+filename = askopenfilename() # show an "Open" dialog box and return the path to the selected file
+print(filename)
+
+ 
+# titre et bouton retour a l'accueil   
+def titre():
+    boutonAccueil = Button(fenetre, text="<-", background="black", fg='white', command=menu)
+    boutonAccueil.place(x=50, y=10)
+    titre = Label(fenetre, text="Gestion de variables", background="white", font=("Times new roman", 15, "bold"))
+    titre.place(x=450, y=10)
+
+# page d'accueil
+def menu():       
+    x = 15
+    a = 1
+    y = 75
+    xxx = 115
+    for w in fenetre.winfo_children():
+        w.destroy()
+    titre()
+    
+    # création du tableau des variables
+    tab = {}
+    fichier = open('D:/Programation/gestionnaire_variable/gestionnaire_variable.py', "r")    
+    
+    lignes = fichier.readlines()
+    for lignes in lignes:
+        # vérif si il y a une variable
+        if("=" in lignes):
+            if('if' in lignes):
+                continue
+            variable = ""
+            resultat = ""
+            position = lignes.index("=")
+            # ecriture de la variable
+            for i in range(0, position):
+                if(lignes[i] == "+" or lignes[i] == "[" or lignes[i] == "." or lignes[i] == "("):
+                    i += 1
+                    break            
+                if(lignes[i] != " "):
+                    # récupération du nom
+                    variable += lignes[i]
+            longeur = len(lignes)
+            debut = position+1
+            for i in range (debut,  longeur) :
+                if(i != debut):
+                    resultat += lignes[i]
+            textPrint = variable
+            # si la variable n'est pas dans la liste, on l'ajoute et on écrit sur la fenetre
+            if(variable not in tab):
+                tab[variable] = resultat
+                label = Label(fenetre, text=variable, background="white", font=("Times new roman", 12))
+                label.place(x=x, y=y)
+                bouton = Button(fenetre, text="Modifier "+variable, width="20", command=partial(
+                    vari, textPrint, resultat
+                ))
+                bouton.place(x=xxx, y=y)
+                if(a == 1 or a == 2 or a==3):
+                    x += 270
+                    xxx += 270
+                    a += 1
+                elif(a == 4):
+                    x = 15
+                    a = 1
+                    y += 50
+                    xxx = 115            
+
+# ouverture de la fenetre avec la variable
+def voirPlus(resultat, valeur):
+    ctypes.windll.user32.MessageBoxW(0, valeur + " = " + resultat, "Valeur de la variable",  1)
+
+# voir et modifier la variable      
+def vari(variable, resultat):
+    for w in fenetre.winfo_children():
+        w.destroy()
+    titre()  
+    
+    # info de la variable
+    # titre
+    voirVariable = Label(fenetre, text="Variables :", background="white", font=("Times new roman", 15, "bold"))
+    voirVariable.place(x=75, y=65)
+    # nom de la variable
+    nomVariable = Label(fenetre, text="Nom de la variable : " + variable, background="white", font=("Times new roman", 12))
+    nomVariable.place(x=25, y=100) 
+    # valeur au debut de la variable
+    resultatVariable = Label(fenetre, text="Resultat de la variable : " + resultat, background="white", font=("Times new roman", 12))
+    resultatVariable.place(x=25, y=125)
+    # bouton pour ouvir une popup avec les infos de la variables
+    boutonpoints = Button(fenetre, background="Grey", width="3", command=partial(
+                voirPlus, resultat, variable
+            ))
+    boutonpoints.place(x=1000, y=125)
+    # analyse et affichage du type de la variable
+    typeVar = testType.defTypeVariable(resultat)
+    texte = "Type de variable : " + typeVar
+    typeVariable = Label(fenetre, text = texte, background="white", font=("Times new roman", 12))
+    typeVariable.place(x=25, y=150)
+    
+    # modification de la variable
+    modifierVariable = Label(fenetre, text="Modifier la variable " + variable, background="white", font=("Times new roman", 15, "bold"))
+    modifierVariable.place(x=450, y=200)
+    
+    # modifier nom de la variable
+    modifierTitreNomVariable = Label(fenetre, text="Modifier la variable :", background="white", font=("Times new roman", 12))
+    modifierTitreNomVariable.place(x=25, y=250)
+    global modifierNomVariable 
+    modifierNomVariable = Entry(fenetre, background="white", bd=2, font=("Times new roman", 12))
+    modifierNomVariable.insert(END, variable)
+    modifierNomVariable.place(x=160, y=250)
+    buttonModifierNom = Button(fenetre, text="Modifier nom", background="white", font=("Times new roman", 12), command=partial(
+        changerNomVariable, variable
+    ))
+    buttonModifierNom.place(x=350, y=245)
+        
+# changer le nom de la variable
+def changerNomVariable(variable):
+    resultat = modifierNomVariable.get()
+    # Read in the file
+    with open('D:/Programation/gestionnaire_variable/test2.txt', 'r') as file :
+        filedata = file.read()
+
+    # Replace the target string
+    filedata = filedata.replace(variable, resultat)
+
+    # Write the file out again
+    with open('D:/Programation/gestionnaire_variable/test2.txt', 'w') as file:
+        file.write(filedata)  
+    modifierFichier()   
+    menu()
+                 
+    
+# class pour les test de types de variables
+class testType :
+    # test du type variable
+    def defTypeVariable(resultat):
+        type = ""
+        resultat.replace(" ", "")
+        resultat = str(resultat)
+        if testType.testBool(resultat) == True:
+            type = "Boolean"
+            return type        
+        elif testType.testChiffre(resultat) == True:
+            type = "Integer" 
+            return type 
+        elif testType.testLettre(resultat) == True and testType.testTableau(resultat) == False:
+            type = "String"
+            return type
+        elif testType.testFloat(resultat) == True and testType.testTableau(resultat) == False:
+            type = "Float"
+            return type
+        elif testType.testTableau(resultat) == True:
+            type = "Tableau"
+            return type
+        else:
+            type = "Pas trouvé" 
+            return type
+
+    # si c'est un string
+    def testLettre(resultat):
+        lettres = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "x", "x", "y", "z", '""']
+        if resultat == "True" or resultat == "False":
+            return False
+        elif resultat == '""':
+            return True
+        else:
+            for i in range(0, len(lettres)):
+                if lettres[i] in resultat:
+                    return True
+                elif lettres[i].upper() in resultat:
+                    return True
+            return False
+
+    # si c'est un int
+    def testChiffre(resultat):
+        resultat.replace("'", "")
+        resultat.replace('"', "")
+        if testType.testLettre(resultat):
+            return False
+        if "." in resultat or "," in resultat:
+            return False
+        chiffres = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, "+", "-", "*", "/"]
+        for i in range(0, len(chiffres)):
+            if str(chiffres[i]) in resultat:
+                return True
+        return False
+
+    # si c'est un boolean
+    def testBool(resultat):
+        booleanTest = ["True","False"]
+        for i in range(0, len(booleanTest)):
+            if str(booleanTest[i]) in resultat:
+                return True
+        return False
+
+    # si c'est un float
+    def testFloat(resultat):
+        tstFloat = [".", ","]
+        for i in range(0, len(tstFloat)):
+            if str(tstFloat[i]) in resultat:
+                return True
+        return False
+
+    # si c'est un tableau
+    def testTableau(resultat):
+        tableau = ["[", "]"]
+        for i in range(0, len(tableau)):
+            if str(tableau[i]) in resultat:
+                return True
+        return False
+    
+def modifierFichier():
+    # recopie du fichier
+    destination=r"D:/Programation/gestionnaire_variable/gestionnaire_variable.py"
+    source=r'D:/Programation/gestionnaire_variable/test2.txt'
+    shutil.copyfile(source, destination)
+
+# création de la fenetre
+fenetre = Tk()
+fenetre.geometry('1100x800')
+fenetre.title("Gestionnaire de variable")
+fenetre['bg'] = "white"
+fenetre.resizable(height=False, width=False)
+
+# copie du fichier
+source=r"D:/Programation/gestionnaire_variable/gestionnaire_variable.py"
+destination=r'D:/Programation/gestionnaire_variable/test2.txt'
+shutil.copyfile(source, destination)
+
+# création du tableau des variables
+tab = {}
+fichier = open('D:/Programation/gestionnaire_variable/gestionnaire_variable.py', "r")      
+
+menu()
+# faire apparaitre la fenetre à l'infinie
+fenetre.mainloop()
+
+fichier.close()
+
+# recopie du fichier
+destination=r"D:/Programation/gestionnaire_variable/gestionnaire_variable.py"
+source=r'D:/Programation/gestionnaire_variable/test2.txt'
+shutil.copyfile(source, destination)
