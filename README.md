@@ -1,9 +1,14 @@
-# Variable-management - first version
+# Variable Manager v1.2
 
-The variable manager allows you to display all the variables of the selected program file. All you have to do is choose the variable and you will get the following information:
+The Variable Manager allows you to display all variables in the selected program file. Just select the variable and you will get the following information:
   - Its name
   - Its starting value
   - Its type
   - The line number where it is created
-  
-For the moment this program only works on Python but this is only the first version of the project. Several features will appear later.
+  - Display the number of times it is in the file and be able to see the lines concerned
+ 
+The new version allows you to have an option tab to change the size of the text and the colour of the text and background.
+The code also requires that the user can only open Python files.
+For the moment this program only works on Python but it is only the first version of the project. Several features will appear later.
+
+
